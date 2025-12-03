@@ -1,0 +1,108 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PulseX - Crypto Price Tracker</title>
+
+    <style>
+        body {
+            background: #0d1117;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin: 40px auto;
+            text-align: center;
+        }
+
+        #search {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .crypto {
+            background: #161b22;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .green {
+            color: #00ff88;
+        }
+
+        .red {
+            color: #ff4d4d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PulseX - Crypto Price Tracker</h1>
+
+        <input id="search" type="text" placeholder="Search coin..." />
+
+        <div id="crypto-list"></div>
+    </div>
+
+    <script>
+        const list = document.getElementById("crypto-list");
+        const search = document.getElementById("search");
+
+        async function loadCrypto() {
+            const res = await fetch(
+                "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd"
+            );
+            const data = await res.json();
+            displayCoins(data);
+        }
+
+        function displayCoins(coins) {
+            list.innerHTML = "";
+
+            coins.forEach(coin => {
+                const changeClass = coin.price_change_percentage_24h >= 0 ? "green" : "red";
+
+                list.innerHTML += `
+                <div class="crypto">
+                    <div>
+                        <strong>${coin.name}</strong><br>
+                        $${coin.current_price}
+                    </div>
+                    <div class="${changeClass}">
+                        ${coin.price_change_percentage_24h.toFixed(2)}%
+                    </div>
+                </div>`;
+            });
+        }
+
+        search.addEventListener("input", async (e) => {
+            const res = await fetch(
+                "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd"
+            );
+            const data = await res.json();
+
+            const filtered = data.filter(coin =>
+                coin.name.toLowerCase().includes(e.target.value.toLowerCase())
+            );
+
+            displayCoins(filtered);
+        });
+
+        loadCrypto();
+        setInterval(loadCrypto, 30000); // auto-refresh every 30s
+    </script>
+</body>
+</html>
